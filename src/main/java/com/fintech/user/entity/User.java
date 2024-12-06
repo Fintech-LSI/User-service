@@ -5,12 +5,9 @@ import lombok.*;
 
 import java.io.Serializable;
 
-
+@Data
 @Entity
 @Table(name = "users")
-@Getter
-@Setter
-
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
