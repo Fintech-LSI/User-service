@@ -2,11 +2,12 @@ package com.fintech.user.controller;
 
 import com.fintech.user.config.exception.UserAlreadyExist;
 import com.fintech.user.controller.dto.requests.UserRequest;
-import com.fintech.user.repository.UserRepository;
+import com.fintech.user.controller.dto.responses.UserResponse;
 import com.fintech.user.entity.User;
 import com.fintech.user.service.UserService;
 import com.fintech.user.service.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,20 +26,46 @@ public class UserController {
   @GetMapping("/test")
   public String test() {
     User user = new User();
-    user.setName("test");
+    user.setFirstName("test");
+    user.setLastName("test");
     user.setEmail("test@test.com");
-    return "User service is running! "+user.getEmail()+" "+user.getName();
+    return "User service is running! "+user.getEmail()+" "+user.getFirstName()+" "+user.getLastName();
   }
 
 
   // Create a new user
   @PostMapping
-  public User createUser(@RequestBody UserRequest request) {
-    if (request.id()!=null && userService.isUserExist(request.id())){
-      throw new UserAlreadyExist(String.valueOf(request.id()) );
+  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
+    if (request.id() != null && userService.isUserExist(request.id())) {
+      throw new UserAlreadyExist(String.valueOf(request.id()));
     }
-    return userService.saveUser(request);
+    User createdUser = userService.saveUser(request);
+    return ResponseEntity.ok(userMapper.userToResponse(createdUser));
+  }
+  // Get all users
+  @GetMapping
+  public ResponseEntity<List<UserResponse>> getAllUsers() {
+    List<User> users = userService.getAllUsers();
+    return ResponseEntity.ok(users.stream().map(userMapper::userToResponse).toList());
+  }
+  // Get user by ID
+  @GetMapping("/{id}")
+  public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    User user = userService.getUserById(id);
+    return ResponseEntity.ok(userMapper.userToResponse(user));
+  }
+  // Update user
+  @PutMapping("/{id}")
+  public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
+    User updatedUser = userService.updateUser(id, request);
+    return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
   }
 
+  // Delete user
+  @DeleteMapping("/{id}")
+  public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+    userService.deleteUser(id);
+    return ResponseEntity.ok("User deleted successfully");
+  }
 
 }
