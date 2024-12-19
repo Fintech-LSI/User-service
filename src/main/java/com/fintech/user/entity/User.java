@@ -28,4 +28,21 @@ public class User implements Serializable {
   @Email
   private String email;
 
+  @Column(nullable = true , name = "favorite_currency_id")
+  private Long favoriteCurrency;
+
+  @ManyToOne
+  @JoinColumn(name = "image_id")
+  private Image image;
+
+  @PrePersist
+  public void setDefaultImage() {
+    if (this.image == null) {
+      this.image = Image.builder()
+        .name("default")
+        .url("https://upload.wikimedia.org/wikipedia/commons/a/a5/Default_Profile_Picture.png")
+        .build(); // Initialize with default image URL
+    }
+  }
+
 }

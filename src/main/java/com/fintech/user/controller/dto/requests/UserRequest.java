@@ -3,6 +3,7 @@ package com.fintech.user.controller.dto.requests;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import org.antlr.v4.runtime.misc.NotNull;
+import org.springframework.web.multipart.MultipartFile;
 
 public record UserRequest(
   Long id, // Optional, so no validation
@@ -17,5 +18,9 @@ public record UserRequest(
 
   @NotNull()
   @Email(message = "Email should be valid")
-  String email
+  String email,
+
+  // New field for image upload
+  MultipartFile imageFile
+
 ) {}

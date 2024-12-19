@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -35,7 +36,7 @@ public class UserController {
 
   // Create a new user
   @PostMapping
-  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> createUser(@ModelAttribute UserRequest request) throws IOException {
     if (request.id() != null && userService.isUserExist(request.id())) {
       throw new UserAlreadyExist(String.valueOf(request.id()));
     }
@@ -56,7 +57,7 @@ public class UserController {
   }
   // Update user
   @PutMapping("/{id}")
-  public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserRequest request) {
+  public ResponseEntity<UserResponse> updateUser(@PathVariable Long id, @RequestBody UserRequest request) throws IOException {
     User updatedUser = userService.updateUser(id, request);
     return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
   }
