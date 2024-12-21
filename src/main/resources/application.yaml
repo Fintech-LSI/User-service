@@ -3,3 +3,10 @@ spring:
     import: optional:configserver:http://localhost:8889
   application:
     name: user-service
+  web:
+    resources:
+      static-locations: file:./src/main/public/images/
+
+
+image:
+  folder:  src/main/public/images/

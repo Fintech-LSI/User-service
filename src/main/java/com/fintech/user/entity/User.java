@@ -6,6 +6,8 @@ import lombok.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Data
 @Entity
@@ -28,8 +30,9 @@ public class User implements Serializable {
   @Email
   private String email;
 
-  @Column(nullable = true , name = "favorite_currency_id")
-  private Long favoriteCurrency;
+  @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<FavoriteCurrencies> favoriteCurrencies = new HashSet<>();
+
 
   @ManyToOne
   @JoinColumn(name = "image_id")

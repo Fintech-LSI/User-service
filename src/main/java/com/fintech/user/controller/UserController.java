@@ -3,12 +3,15 @@ package com.fintech.user.controller;
 import com.fintech.user.config.exception.UserAlreadyExist;
 import com.fintech.user.controller.dto.requests.UserRequest;
 import com.fintech.user.controller.dto.responses.UserResponse;
+import com.fintech.user.entity.Image;
 import com.fintech.user.entity.User;
+import com.fintech.user.service.ImageService;
 import com.fintech.user.service.UserService;
 import com.fintech.user.service.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,6 +22,9 @@ public class UserController {
 
   @Autowired
   private UserService userService;
+
+  @Autowired
+  private ImageService imageService;
 
   @Autowired
   private UserMapper userMapper;
@@ -32,7 +38,18 @@ public class UserController {
     user.setEmail("test@test.com");
     return "User service is running! "+user.getEmail()+" "+user.getFirstName()+" "+user.getLastName();
   }
+  // Test endpoint
+  @PostMapping("/image/test")
+  public String testimage(@ModelAttribute UserRequest ur)  {
+    Image i;
+    try{
+        i = imageService.saveImage(ur.imageFile());
+    } catch (IOException e) {
+      return e.getMessage();
+    }
 
+   return i.getUrl();
+  }
 
   // Create a new user
   @PostMapping

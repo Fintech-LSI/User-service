@@ -3,6 +3,7 @@ package com.fintech.user.service;
 import com.fintech.user.entity.Image;
 import com.fintech.user.repository.ImageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -14,7 +15,8 @@ import java.util.UUID;
 
 @Service
 public class ImageService {
-  private static final String IMAGE_FOLDER = "public/images/";
+  @Value("${image.folder}")
+  private String IMAGE_FOLDER ;
 
   @Autowired
   private ImageRepository imageRepository;
@@ -36,7 +38,7 @@ public class ImageService {
     // Save the image metadata in the database
     Image image = Image.builder()
       .name(uniqueFileName)
-      .url("/images/" + uniqueFileName) // Public URL path
+      .url(IMAGE_FOLDER + uniqueFileName) // Public URL path
       .build();
     return imageRepository.save(image);
   }

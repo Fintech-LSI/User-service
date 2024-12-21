@@ -13,12 +13,17 @@ import java.io.Serializable;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Image implements Serializable {
+@Table(name = "favorite_currencies")
+public class FavoriteCurrencies implements Serializable {
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
   @Column(nullable = false)
-  private String url;
-  @Column(nullable = true)
-  private String name;
+  private Long currencyId; // References the ID in the wallet service
+
+  @ManyToOne
+  @JoinColumn(name = "user_id", nullable = false)
+  private User user;
 }
