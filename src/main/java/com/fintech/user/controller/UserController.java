@@ -85,5 +85,9 @@ public class UserController {
     userService.deleteUser(id);
     return ResponseEntity.ok("User deleted successfully");
   }
-
+  @GetMapping("/{id}/name")
+  public ResponseEntity<String> getUserNameById(@PathVariable Long id) {
+    User user = userService.getUserById(id);
+    return ResponseEntity.ok(user.getFirstName() + " " + user.getLastName());
+  }
 }
