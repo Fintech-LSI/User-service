@@ -3,12 +3,13 @@ pipeline {
 
     environment {
         AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
-        AWS_REGION = 'us-east-1'  // Change to your AWS region
+        AWS_REGION = 'us-east-1'
         ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         IMAGE_NAME = 'user-service'
         IMAGE_TAG = "${BUILD_NUMBER}"
-        EKS_CLUSTER_NAME = 'your-eks-cluster'  // Change to your cluster name
+        EKS_CLUSTER_NAME = 'your-eks-cluster'
         NAMESPACE = 'user-service'
+        SONAR_PROJECT_KEY = 'user-service'
     }
 
     stages {
@@ -24,7 +25,7 @@ pipeline {
             }
         }
 
-        stage('Unit Tests') {
+        stage('Test') {
             steps {
                 sh 'mvn test'
             }
@@ -36,25 +37,46 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('SONAR_TOKEN')
+            }
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    sh 'mvn sonar:sonar'
+                    sh """
+                        mvn sonar:sonar \
+                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
+                        -Dsonar.host.url=http://your-sonarqube-url:9000 \
+                        -Dsonar.login=${SONAR_TOKEN}
+                    """
                 }
             }
         }
 
-        stage('Build and Push Docker Image to ECR') {
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    // Authenticate with ECR
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}"
-
-                    // Build Docker image
                     docker.build("${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}")
+                }
+            }
+        }
 
-                    // Push to ECR
-                    sh "docker push ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    sh "docker push ${ECR_REPO}/${IMAGE_NAME}:latest"
+        stage('Push to ECR') {
+            steps {
+                script {
+                    sh """
+                        docker push ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+                        docker tag ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REPO}/${IMAGE_NAME}:latest
+                        docker push ${ECR_REPO}/${IMAGE_NAME}:latest
+                    """
                 }
             }
         }
@@ -62,24 +84,13 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 script {
-                    // Configure kubectl
                     sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
-
-                    // Create namespace if it doesn't exist
                     sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
 
-                    // Deploy the k8s resources
-                    withKubeConfig([credentialsId: 'eks-credentials']) {
-                        // Apply Kubernetes manifests
-                        sh """
-                            sed -i 's|IMAGE_URL_PLACEHOLDER|${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}|g' k8s/deployment.yaml
-                            kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}
-                            kubectl apply -f k8s/service.yaml -n ${NAMESPACE}
-                        """
-
-                        // Wait for deployment to complete
-                        sh "kubectl rollout status deployment/${IMAGE_NAME} -n ${NAMESPACE}"
-                    }
+                    sh """
+                        kubectl apply -f k8s/ -n ${NAMESPACE}
+                        kubectl rollout status deployment/user-service -n ${NAMESPACE}
+                    """
                 }
             }
         }
@@ -88,14 +99,13 @@ pipeline {
     post {
         always {
             cleanWs()
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-            slackSend(color: 'good', message: "Success: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            sh """
+                docker rmi ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG} || true
+                docker rmi ${ECR_REPO}/${IMAGE_NAME}:latest || true
+            """
         }
         failure {
-            echo 'Pipeline failed!'
-            slackSend(color: 'danger', message: "Failed: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+            sh "kubectl rollout undo deployment/user-service -n ${NAMESPACE} || true"
         }
     }
 }
