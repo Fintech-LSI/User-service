@@ -16,5 +16,9 @@ public record UserResponse(
 
   @NotNull()
   @Email(message = "Email should be valid")
-  String email
+  String email,
+
+  Integer age ,
+
+  String image
 ) {}

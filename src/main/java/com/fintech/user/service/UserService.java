@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -77,4 +78,9 @@ public class UserService {
     }
     userRepository.deleteById(id);
   }
+
+  public Optional<User> findByEmail(String email) {
+    return Optional.ofNullable(userRepository.findByEmail(email));
+  }
+
 }

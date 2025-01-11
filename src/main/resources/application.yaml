@@ -10,3 +10,12 @@ spring:
 
 image:
   folder:  src/main/public/images/
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+

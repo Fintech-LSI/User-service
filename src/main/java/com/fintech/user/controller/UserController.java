@@ -9,12 +9,12 @@ import com.fintech.user.service.ImageService;
 import com.fintech.user.service.UserService;
 import com.fintech.user.service.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("api/users")
@@ -40,7 +40,7 @@ public class UserController {
   }
   // Test endpoint
   @PostMapping("/image/test")
-  public String testimage(@ModelAttribute UserRequest ur)  {
+  public String testimage(@RequestBody UserRequest ur)  {
     Image i;
     try{
         i = imageService.saveImage(ur.imageFile());
@@ -53,7 +53,7 @@ public class UserController {
 
   // Create a new user
   @PostMapping
-  public ResponseEntity<UserResponse> createUser(@ModelAttribute UserRequest request) throws IOException {
+  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) throws IOException {
     if (request.id() != null && userService.isUserExist(request.id())) {
       throw new UserAlreadyExist(String.valueOf(request.id()));
     }
@@ -84,6 +84,33 @@ public class UserController {
   public ResponseEntity<String> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
     return ResponseEntity.ok("User deleted successfully");
+  }
+
+
+  @GetMapping("/email/{email}")
+  public ResponseEntity<?> getUserByEmail(@PathVariable String email) {
+    try {
+      // Validate input
+      if (email == null || email.trim().isEmpty()) {
+        return ResponseEntity.badRequest().body("Email cannot be null or empty.");
+      }
+
+      // Find user by email
+      Optional<User> user = userService.findByEmail(email);
+
+      // Check if the user exists
+      if (user.isPresent()) {
+        UserResponse userResponse = userMapper.userToResponse(user.get()); // Assuming UserResponse is a DTO
+        return ResponseEntity.ok(userResponse);
+      } else {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+          .body("User with email " + email + " not found.");
+      }
+    } catch (Exception e) {
+      // Handle unexpected errors
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body("An error occurred while processing the request: " + e.getMessage());
+    }
   }
 
 }
