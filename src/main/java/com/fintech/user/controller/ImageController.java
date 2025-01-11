@@ -1,5 +1,6 @@
 package com.fintech.user.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +19,8 @@ import java.nio.file.Paths;
 @RequestMapping("/users/public/images")
 public class ImageController {
 
-  private static final String IMAGE_DIRECTORY = "public/images";
+  @Value("${image.folder}")
+  private String IMAGE_DIRECTORY ;
 
   @GetMapping("/{filename}")
   public ResponseEntity<Resource> getImage(@PathVariable String filename) {

@@ -38,7 +38,7 @@ public class ImageService {
     // Save the image metadata in the database
     Image image = Image.builder()
       .name(uniqueFileName)
-      .url(IMAGE_FOLDER + uniqueFileName) // Public URL path
+      .url(uniqueFileName) // Public URL path
       .build();
     return imageRepository.save(image);
   }

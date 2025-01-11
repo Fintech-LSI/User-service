@@ -40,7 +40,7 @@ public class User implements Serializable {
   private OwnerShip homeOwnership;
 
   @Column(nullable = true)
-  private Integer employmentYears;
+  private Integer employmentMonth;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<FavoriteCurrencies> favoriteCurrencies = new HashSet<>();
