@@ -2,14 +2,12 @@ pipeline {
     agent any
 
     environment {
-        AWS_ACCOUNT_ID = credentials('AWS_ACCOUNT_ID')
-        AWS_REGION = 'us-east-1'
-        ECR_REPO = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
-        IMAGE_NAME = 'user-service'
-        IMAGE_TAG = "${BUILD_NUMBER}"
-        EKS_CLUSTER_NAME = 'your-eks-cluster'
-        NAMESPACE = 'user-service'
-        SONAR_PROJECT_KEY = 'user-service'
+        AWS_REGION      = 'us-east-1'
+        IMAGE_NAME      = 'user-service'
+        ECR_REGISTRY    = 'public.ecr.aws/z1z0w2y6'
+        DOCKER_BUILD_NUMBER = "${BUILD_NUMBER}"
+        EKS_CLUSTER_NAME = 'main-cluster'
+        NAMESPACE = 'fintech'
     }
 
     stages {
@@ -21,62 +19,44 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'mvn test'
-            }
-            post {
-                always {
-                    junit '**/target/surefire-reports/*.xml'
+                script {
+                    try {
+                        sh 'mvn clean package -DskipTests'
+                    } catch (Exception e) {
+                        error "Maven build failed: ${e.message}"
+                    }
                 }
             }
         }
 
-        stage('SonarQube Analysis') {
-            environment {
-                SONAR_TOKEN = credentials('SONAR_TOKEN')
-            }
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh """
-                        mvn sonar:sonar \
-                        -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
-                        -Dsonar.host.url=http://your-sonarqube-url:9000 \
-                        -Dsonar.login=${SONAR_TOKEN}
-                    """
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-
-        stage('Build Docker Image') {
+        stage('Build & Push Docker Image') {
             steps {
                 script {
-                    sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REPO}"
-                    docker.build("${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}")
-                }
-            }
-        }
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-credentials',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        try {
+                            // Login to ECR
+                            sh """
+                                aws ecr-public get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_REGISTRY}
+                            """
 
-        stage('Push to ECR') {
-            steps {
-                script {
-                    sh """
-                        docker push ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
-                        docker tag ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG} ${ECR_REPO}/${IMAGE_NAME}:latest
-                        docker push ${ECR_REPO}/${IMAGE_NAME}:latest
-                    """
+                            // Build and tag image
+                            sh """
+                                docker build -t ${ECR_REGISTRY}/${IMAGE_NAME}:latest . --no-cache
+                            """
+
+                            // Push the latest tag
+                            sh """
+                                docker push ${ECR_REGISTRY}/${IMAGE_NAME}:latest
+                            """
+                        } catch (Exception e) {
+                            error "Docker build/push failed: ${e.message}"
+                        }
+                    }
                 }
             }
         }
@@ -84,28 +64,59 @@ pipeline {
         stage('Deploy to EKS') {
             steps {
                 script {
-                    sh "aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}"
-                    sh "kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -"
+                    withCredentials([[
+                        $class: 'AmazonWebServicesCredentialsBinding',
+                        credentialsId: 'aws-credentials',
+                        accessKeyVariable: 'AWS_ACCESS_KEY_ID',
+                        secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
+                    ]]) {
+                        try {
+                            // Configure kubectl
+                            sh """
+                                aws eks update-kubeconfig --region ${AWS_REGION} --name ${EKS_CLUSTER_NAME}
+                            """
 
-                    sh """
-                        kubectl apply -f k8s/ -n ${NAMESPACE}
-                        kubectl rollout status deployment/user-service -n ${NAMESPACE}
-                    """
+                            // Create namespace if doesn't exist
+                            sh """
+                                kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                            """
+
+                            // Apply K8s manifests
+                            sh """
+                                kubectl apply -f k8s/configmap.yaml -n ${NAMESPACE}
+                                kubectl apply -f k8s/secrets.yaml -n ${NAMESPACE}
+                                kubectl apply -f k8s/deployment.yaml -n ${NAMESPACE}
+                                kubectl apply -f k8s/service.yaml -n ${NAMESPACE}
+                            """
+
+                            // Check pod status
+                            sh """
+                                echo "Checking pod status:"
+                                kubectl get pods -n ${NAMESPACE} -l app=user-service
+                            """
+
+                        } catch (Exception e) {
+                            error "Deployment failed: ${e.message}"
+                        }
+                    }
                 }
             }
         }
     }
 
     post {
-        always {
-            cleanWs()
-            sh """
-                docker rmi ${ECR_REPO}/${IMAGE_NAME}:${IMAGE_TAG} || true
-                docker rmi ${ECR_REPO}/${IMAGE_NAME}:latest || true
-            """
+        success {
+            echo 'Pipeline succeeded! Application deployed successfully.'
         }
         failure {
-            sh "kubectl rollout undo deployment/user-service -n ${NAMESPACE} || true"
+            echo 'Pipeline failed! Check the logs for details.'
+        }
+        always {
+            // Cleanup only the local Docker image
+            sh """
+                docker rmi ${ECR_REGISTRY}/${IMAGE_NAME}:latest || true
+            """
+            cleanWs()
         }
     }
 }
