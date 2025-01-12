@@ -3,7 +3,6 @@ package com.fintech.user.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import lombok.*;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -29,6 +28,19 @@ public class User implements Serializable {
   @Column(unique = true, nullable = false)
   @Email
   private String email;
+
+
+  @Column(nullable = true)
+  private Integer age;
+
+  @Column(nullable = true)
+  private Double salary;
+
+  @Column(nullable = true)
+  private OwnerShip homeOwnership;
+
+  @Column(nullable = true)
+  private Integer employmentMonth;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<FavoriteCurrencies> favoriteCurrencies = new HashSet<>();

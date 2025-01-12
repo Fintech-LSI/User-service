@@ -1,5 +1,6 @@
 package com.fintech.user.controller.dto.responses;
 
+import com.fintech.user.entity.OwnerShip;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -16,5 +17,12 @@ public record UserResponse(
 
   @NotNull()
   @Email(message = "Email should be valid")
-  String email
+  String email,
+
+  Integer age ,
+  Double salary,
+  OwnerShip homeOwnership,
+  Integer employmentMonth,
+
+  String image
 ) {}

@@ -1,8 +1,10 @@
 package com.fintech.user.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,10 +16,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 @RestController
-@RequestMapping("/public/images")
+@RequestMapping("/users/public/images")
 public class ImageController {
 
-  private static final String IMAGE_DIRECTORY = "public/images";
+  @Value("${image.folder}")
+  private String IMAGE_DIRECTORY ;
 
   @GetMapping("/{filename}")
   public ResponseEntity<Resource> getImage(@PathVariable String filename) {
@@ -28,9 +31,17 @@ public class ImageController {
       if (!resource.exists() || !resource.isReadable()) {
         return ResponseEntity.notFound().build();
       }
+      // Determine content type (image/jpeg, image/png, etc.)
+      String contentType = "application/octet-stream"; // Default content type
+      try {
+        contentType = resource.getURL().openConnection().getContentType();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
 
       return ResponseEntity.ok()
-        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+        .contentType(MediaType.parseMediaType(contentType))  // Set the content type
+        .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")  // Optional: Inline for viewing in browser
         .body(resource);
     } catch (MalformedURLException e) {
       return ResponseEntity.badRequest().build();

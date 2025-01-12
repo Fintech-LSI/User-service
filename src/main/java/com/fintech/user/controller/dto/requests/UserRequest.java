@@ -1,5 +1,6 @@
 package com.fintech.user.controller.dto.requests;
 
+import com.fintech.user.entity.OwnerShip;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -20,7 +21,18 @@ public record UserRequest(
   @Email(message = "Email should be valid")
   String email,
 
-  // New field for image upload
-  MultipartFile imageFile
 
-) {}
+
+  // New field for image upload
+  MultipartFile imageFile,
+
+
+
+  // New fields for additional user information - all are optional
+  Integer age,
+  Double salary,
+  OwnerShip homeOwnership,
+  Integer employmentMonth
+
+
+  ) {}
