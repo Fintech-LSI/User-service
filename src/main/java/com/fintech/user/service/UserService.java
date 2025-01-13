@@ -8,6 +8,7 @@ import com.fintech.user.entity.OwnerShip;
 import com.fintech.user.entity.User;
 import com.fintech.user.repository.UserRepository;
 import com.fintech.user.service.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import java.util.Optional;
 
 @Service
 @Transactional
+@Slf4j
 public class UserService {
   @Autowired
   private UserRepository userRepository;
@@ -60,7 +62,7 @@ public class UserService {
     User existingUser = getUserById(id);
 
     // Only update the email if it has changed
-    if (!existingUser.getEmail().equals(userRequest.email())) {
+    if (userRequest.email() != null && !userRequest.email().equals(existingUser.getEmail())) {
       if (userRepository.existsByEmailAndIdNot(userRequest.email(), id)) {
         throw new EmailAlreadyExistsException("Email " + userRequest.email() + " is already in use");
       }
@@ -68,15 +70,13 @@ public class UserService {
     }
 
     // Update fields only if they have changed
-    if (!existingUser.getFirstName().equals(userRequest.firstName())) {
+    if (userRequest.firstName() != null && !userRequest.firstName().equals(existingUser.getFirstName())) {
       existingUser.setFirstName(userRequest.firstName());
     }
 
-    if (!existingUser.getLastName().equals(userRequest.lastName())) {
+    if (userRequest.lastName() != null && !userRequest.lastName().equals(existingUser.getLastName())) {
       existingUser.setLastName(userRequest.lastName());
     }
-
-
 
     if (userRequest.age() != null && !userRequest.age().equals(existingUser.getAge())) {
       existingUser.setAge(userRequest.age());
@@ -96,18 +96,33 @@ public class UserService {
 
     // Handle image replacement
     if (userRequest.imageFile() != null && !userRequest.imageFile().isEmpty()) {
-      // Delete the old image if it exists
-      if (existingUser.getImage() != null) {
-        imageService.deleteImage(existingUser.getImage().getId());
-      }
-      // Save the new image and set it on the user
+      // Store the old image reference
+      Image oldImage = existingUser.getImage();
+
+      // First save the new image
       Image uploadedImage = imageService.saveImage(userRequest.imageFile());
+
+      // Update user's image reference
       existingUser.setImage(uploadedImage);
+
+      // Save the user with new image
+      User savedUser = userRepository.save(existingUser);
+
+      // Now it's safe to delete the old image
+      if (oldImage != null && !oldImage.getUrl().equals("default_profile_picture.png")) {
+        try {
+          imageService.deleteImage(oldImage.getId());
+        } catch (Exception e) {
+          // Log the error but don't fail the update
+          log.error("Failed to delete old image: " + e.getMessage());
+        }
+      }
+
+      return savedUser;
     }
 
     return userRepository.save(existingUser);
   }
-
 
   public void deleteUser(Long id) {
     if (!isUserExist(id)) {
