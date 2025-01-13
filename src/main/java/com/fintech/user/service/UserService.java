@@ -4,6 +4,7 @@ import com.fintech.user.config.exception.EmailAlreadyExistsException;
 import com.fintech.user.config.exception.UserNotFoundException;
 import com.fintech.user.controller.dto.requests.UserRequest;
 import com.fintech.user.entity.Image;
+import com.fintech.user.entity.OwnerShip;
 import com.fintech.user.entity.User;
 import com.fintech.user.repository.UserRepository;
 import com.fintech.user.service.mapper.UserMapper;
@@ -79,6 +80,18 @@ public class UserService {
 
     if (userRequest.age() != null && !userRequest.age().equals(existingUser.getAge())) {
       existingUser.setAge(userRequest.age());
+    }
+
+    if (userRequest.salary() != null && !userRequest.salary().equals(existingUser.getSalary())) {
+      existingUser.setSalary(userRequest.salary());
+    }
+
+    if (userRequest.homeOwnership() != null && !userRequest.homeOwnership().equals(existingUser.getHomeOwnership())) {
+      existingUser.setHomeOwnership(OwnerShip.valueOf(userRequest.homeOwnership()));
+    }
+
+    if (userRequest.employmentMonth() != null && !userRequest.employmentMonth().equals(existingUser.getEmploymentMonth())) {
+      existingUser.setEmploymentMonth(userRequest.employmentMonth());
     }
 
     // Handle image replacement
