@@ -53,10 +53,10 @@ public class User implements Serializable {
   @PrePersist
   public void setDefaultImage() {
     if (this.image == null) {
-      this.image = Image.builder()
+      this.image =  Image.builder()
         .name("default")
-        .url("https://upload.wikimedia.org/wikipedia/commons/a/a5/Default_Profile_Picture.png")
-        .build(); // Initialize with default image URL
+        .url("default_profile_picture.png")
+        .build();
     }
   }
 

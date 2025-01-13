@@ -35,18 +35,10 @@ public class UserController {
   public String test() {
     return "User service is running! ";
   }
-  // Test endpoint
-  @PostMapping("/image/test")
-  public String testimage(@RequestBody UserRequest ur)  {
-    Image i;
-    try{
-        i = imageService.saveImage(ur.imageFile());
-    } catch (IOException e) {
-      return e.getMessage();
-    }
 
-   return i.getUrl();
-  }
+
+
+
 
   // Create a new user
   @PostMapping

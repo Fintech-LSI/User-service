@@ -21,76 +21,48 @@ public class FavoriteCurrencyService {
   public FavoriteCurrencyService(
     UserRepository userRepository,
     FavoriteCurrenciesRepository favoriteCurrenciesRepository
-  )
-  {
+  ) {
     this.userRepository = userRepository;
     this.favoriteCurrenciesRepository = favoriteCurrenciesRepository;
   }
 
-  /**
-   * Add a currency to the user's favorite currencies list.
-   *
-   * @param userId     the ID of the user
-   * @param currencyId the ID of the currency
-   * @return the added favorite currency
-   */
   @Transactional
   public FavoriteCurrencies addFavoriteCurrency(Long userId, Long currencyId) {
-    // Validate user
     User user = userRepository.findById(userId)
       .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
 
-    // Validate currency by checking with the wallet service
-    //CurrencyRequest currencyDTO = walletService.getCurrencyById(currencyId);
-//    if (currencyDTO == null) {
-//      throw new RuntimeException("Currency not found in Wallet Service");
-//    }
-//
-//    // Check if the currency is already in the user's favorites
-//    Optional<FavoriteCurrencies> existingFavorite = favoriteCurrenciesRepository
-//      .findByUserIdAndCurrencyId(userId, currencyId);
-//
-//    if (existingFavorite.isPresent()) {
-//      throw new RuntimeException("Currency already in user's favorite list");
-//    }
+    // Check if the currency is already in favorites
+    if (favoriteCurrenciesRepository.findFavoriteCurrenciesByUserIdAndCurrencyId(userId, currencyId) != null) {
+      throw new IllegalStateException("Currency is already in favorites");
+    }
 
-    // Add the currency to the user's favorite list
     FavoriteCurrencies favoriteCurrency = FavoriteCurrencies.builder()
       .user(user)
       .currencyId(currencyId)
       .build();
 
     user.getFavoriteCurrencies().add(favoriteCurrency);
-
-    userRepository.save(user); // Save user to persist the changes
+    userRepository.save(user);
     return favoriteCurrency;
   }
 
-  /**
-   * Remove a currency from the user's favorite currencies list.
-   *
-   * @param userId     the ID of the user
-   * @param currencyId the ID of the currency
-   */
   @Transactional
   public void removeFavoriteCurrency(Long userId, Long currencyId) {
-    FavoriteCurrencies favoriteCurrency = favoriteCurrenciesRepository.findFavoriteCurrenciesByUserIdAndCurrencyId(userId, currencyId);
-    if (favoriteCurrency != null) {
-      throw new FavoriteCurrencyNotFoundInUserService(String.valueOf(userId) , String.valueOf(currencyId));
+    FavoriteCurrencies favoriteCurrency = favoriteCurrenciesRepository
+      .findFavoriteCurrenciesByUserIdAndCurrencyId(userId, currencyId);
+
+    if (favoriteCurrency == null) {
+      throw new FavoriteCurrencyNotFoundInUserService(String.valueOf(userId), String.valueOf(currencyId));
     }
+
+    User user = favoriteCurrency.getUser();
+    user.getFavoriteCurrencies().remove(favoriteCurrency);
     favoriteCurrenciesRepository.delete(favoriteCurrency);
   }
 
-  /**
-   * Get the user's favorite currencies.
-   *
-   * @param userId the ID of the user
-   * @return the set of favorite currencies
-   */
   public Set<FavoriteCurrencies> getUserFavoriteCurrencies(Long userId) {
     User user = userRepository.findById(userId)
-      .orElseThrow(() -> new RuntimeException("User not found"));
-
+      .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
     return user.getFavoriteCurrencies();
   }
 }
