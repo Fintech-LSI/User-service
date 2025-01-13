@@ -36,6 +36,7 @@ public class User implements Serializable {
   @Column(nullable = true)
   private Double salary;
 
+  @Enumerated(EnumType.ORDINAL)
   @Column(nullable = true)
   private OwnerShip homeOwnership;
 
