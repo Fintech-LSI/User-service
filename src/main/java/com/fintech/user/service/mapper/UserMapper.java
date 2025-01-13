@@ -18,6 +18,17 @@ public class UserMapper {
 
 
   public UserResponse userToResponse(User user) {
-    return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail() , user.getAge(),user.getImage().getUrl());
+    return UserResponse.builder()
+      .id(user.getId() != null ? user.getId() : null)
+      .email(user.getEmail()) // Email is mandatory, no null check needed
+      .firstName(user.getFirstName()) // First name is mandatory, no null check needed
+      .lastName(user.getLastName()) // Last name is mandatory, no null check needed
+      .age(user.getAge() != null ? user.getAge() : null)
+      .image(user.getImage() != null ? user.getImage().getUrl() : null)
+      .salary(user.getSalary() != null ? user.getSalary() : null)
+      .employmentMonth(user.getEmploymentMonth() != null ? user.getEmploymentMonth() : null)
+      .homeOwnership(user.getHomeOwnership() != null ? user.getHomeOwnership().toString() : null)
+      .build();
   }
+
 }
