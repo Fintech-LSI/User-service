@@ -2,19 +2,26 @@ package com.fintech.user.service.mapper;
 
 import com.fintech.user.controller.dto.requests.UserRequest;
 import com.fintech.user.controller.dto.responses.UserResponse;
+import com.fintech.user.entity.Image;
+import com.fintech.user.entity.OwnerShip;
 import com.fintech.user.entity.User;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserMapper {
   public User requestToUser(UserRequest userRequest) {
-     return User.builder()
-       .id(userRequest.id())
-       .email(userRequest.email())
-       .firstName(userRequest.firstName())
-       .lastName(userRequest.lastName())
-       .build();
+    return User.builder()
+      .id(userRequest.id()) // Mandatory field
+      .email(userRequest.email()) // Mandatory field
+      .firstName(userRequest.firstName()) // Mandatory field
+      .lastName(userRequest.lastName()) // Mandatory field
+      .age(userRequest.age() != null ? userRequest.age() : null) // Optional field
+      .salary(userRequest.salary() != null ? userRequest.salary() : null) // Optional field
+      .homeOwnership(userRequest.homeOwnership() != null ? OwnerShip.valueOf( userRequest.homeOwnership() ) : null) // Optional field
+      .employmentMonth(userRequest.employmentMonth() != null ? userRequest.employmentMonth() : null) // Optional field
+      .build();
   }
+
 
 
   public UserResponse userToResponse(User user) {

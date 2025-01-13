@@ -31,8 +31,8 @@ public record UserRequest(
   // New fields for additional user information - all are optional
   Integer age,
   Double salary,
-  OwnerShip homeOwnership,
-  Integer employmentYears
+  String homeOwnership,
+  Integer employmentMonth
 
 
   ) {}
