@@ -1,5 +1,6 @@
 package com.fintech.user.service;
 
+import com.fintech.user.config.exception.EmailAlreadyExistsException;
 import com.fintech.user.config.exception.UserNotFoundException;
 import com.fintech.user.controller.dto.requests.UserRequest;
 import com.fintech.user.entity.Image;
@@ -56,22 +57,44 @@ public class UserService {
 
   public User updateUser(Long id, UserRequest userRequest) throws IOException {
     User existingUser = getUserById(id);
-    existingUser.setFirstName(userRequest.firstName());
-    existingUser.setLastName(userRequest.lastName());
-    existingUser.setEmail(userRequest.email());
-    existingUser.setAge(userRequest.age());
 
+    // Only update the email if it has changed
+    if (!existingUser.getEmail().equals(userRequest.email())) {
+      if (userRepository.existsByEmailAndIdNot(userRequest.email(), id)) {
+        throw new EmailAlreadyExistsException("Email " + userRequest.email() + " is already in use");
+      }
+      existingUser.setEmail(userRequest.email());
+    }
+
+    // Update fields only if they have changed
+    if (!existingUser.getFirstName().equals(userRequest.firstName())) {
+      existingUser.setFirstName(userRequest.firstName());
+    }
+
+    if (!existingUser.getLastName().equals(userRequest.lastName())) {
+      existingUser.setLastName(userRequest.lastName());
+    }
+
+
+
+    if (userRequest.age() != null && !userRequest.age().equals(existingUser.getAge())) {
+      existingUser.setAge(userRequest.age());
+    }
+
+    // Handle image replacement
     if (userRequest.imageFile() != null && !userRequest.imageFile().isEmpty()) {
-      // Replace the old image with the new one
+      // Delete the old image if it exists
       if (existingUser.getImage() != null) {
         imageService.deleteImage(existingUser.getImage().getId());
       }
+      // Save the new image and set it on the user
       Image uploadedImage = imageService.saveImage(userRequest.imageFile());
       existingUser.setImage(uploadedImage);
     }
 
     return userRepository.save(existingUser);
   }
+
 
   public void deleteUser(Long id) {
     if (!isUserExist(id)) {
