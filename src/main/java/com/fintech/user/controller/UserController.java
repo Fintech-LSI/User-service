@@ -2,6 +2,7 @@ package com.fintech.user.controller;
 
 import com.fintech.user.config.exception.UserAlreadyExist;
 import com.fintech.user.controller.dto.requests.UserRequest;
+import com.fintech.user.controller.dto.responses.MessageResponse;
 import com.fintech.user.controller.dto.responses.UserResponse;
 import com.fintech.user.entity.Image;
 import com.fintech.user.entity.User;
@@ -32,11 +33,7 @@ public class UserController {
   // Test endpoint
   @GetMapping("/test")
   public String test() {
-    User user = new User();
-    user.setFirstName("test");
-    user.setLastName("test");
-    user.setEmail("test@test.com");
-    return "User service is running! "+user.getEmail()+" "+user.getFirstName()+" "+user.getLastName();
+    return "User service is running! ";
   }
   // Test endpoint
   @PostMapping("/image/test")
@@ -81,9 +78,9 @@ public class UserController {
 
   // Delete user
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+  public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
-    return ResponseEntity.ok("User deleted successfully");
+    return ResponseEntity.ok(MessageResponse.builder().message("User deleted successfully").build());
   }
 
 
@@ -92,7 +89,9 @@ public class UserController {
     try {
       // Validate input
       if (email == null || email.trim().isEmpty()) {
-        return ResponseEntity.badRequest().body("Email cannot be null or empty.");
+        return ResponseEntity.badRequest().body(
+          MessageResponse.builder().message("Email cannot be null or empty.").build()
+        );
       }
 
       // Find user by email
@@ -104,12 +103,12 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
       } else {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body("User with email " + email + " not found.");
+          .body(MessageResponse.builder().message("User with email " + email + " not found.").build());
       }
     } catch (Exception e) {
       // Handle unexpected errors
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body("An error occurred while processing the request: " + e.getMessage());
+        .body(MessageResponse.builder().message("An error occurred while processing the request: " + e.getMessage()).build());
     }
   }
 
