@@ -44,6 +44,8 @@ public class User implements Serializable {
   private Integer employmentMonth;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @ToString.Exclude // Exclude from toString
+  @EqualsAndHashCode.Exclude // Exclude from hashCode and equals
   private Set<FavoriteCurrencies> favoriteCurrencies = new HashSet<>();
 
 

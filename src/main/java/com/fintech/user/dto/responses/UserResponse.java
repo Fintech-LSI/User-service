@@ -1,4 +1,4 @@
-package com.fintech.user.controller.dto.responses;
+package com.fintech.user.dto.responses;
 
 import com.fintech.user.entity.OwnerShip;
 import jakarta.validation.constraints.Email;
@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.antlr.v4.runtime.misc.NotNull;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -34,4 +36,6 @@ public class UserResponse {
   private Double salary;
   private String homeOwnership;
   private Integer employmentMonth;
+
+  private List<CurrencyResponse> favoriteCurrencies;
 }

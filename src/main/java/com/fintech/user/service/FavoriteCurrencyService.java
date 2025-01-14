@@ -2,10 +2,12 @@ package com.fintech.user.service;
 
 import com.fintech.user.config.exception.FavoriteCurrencyNotFoundInUserService;
 import com.fintech.user.config.exception.UserNotFoundException;
+import com.fintech.user.dto.responses.CurrencyResponse;
 import com.fintech.user.entity.FavoriteCurrencies;
 import com.fintech.user.entity.User;
 import com.fintech.user.repository.FavoriteCurrenciesRepository;
 import com.fintech.user.repository.UserRepository;
+import com.fintech.user.service.feign_clients.CurrencyFeignClientService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,34 +19,39 @@ public class FavoriteCurrencyService {
 
   private final UserRepository userRepository;
   private final FavoriteCurrenciesRepository favoriteCurrenciesRepository;
+  private final CurrencyFeignClientService currencyFeignClientService;
 
   public FavoriteCurrencyService(
     UserRepository userRepository,
-    FavoriteCurrenciesRepository favoriteCurrenciesRepository
+    FavoriteCurrenciesRepository favoriteCurrenciesRepository,
+    CurrencyFeignClientService currencyFeignClientService
   ) {
     this.userRepository = userRepository;
     this.favoriteCurrenciesRepository = favoriteCurrenciesRepository;
+    this.currencyFeignClientService = currencyFeignClientService;
   }
 
-  @Transactional
-  public FavoriteCurrencies addFavoriteCurrency(Long userId, Long currencyId) {
-    User user = userRepository.findById(userId)
-      .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
+    @Transactional
+    public CurrencyResponse addFavoriteCurrency(Long userId, Long currencyId) {
+      User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserNotFoundException(String.valueOf(userId)));
 
-    // Check if the currency is already in favorites
-    if (favoriteCurrenciesRepository.findFavoriteCurrenciesByUserIdAndCurrencyId(userId, currencyId) != null) {
-      throw new IllegalStateException("Currency is already in favorites");
+      // Check if the currency is already in favorites
+      if (favoriteCurrenciesRepository.findFavoriteCurrenciesByUserIdAndCurrencyId(userId, currencyId) != null) {
+        throw new IllegalStateException("Currency is already in favorites");
+      }
+
+      FavoriteCurrencies favoriteCurrency = FavoriteCurrencies.builder()
+        .user(user)
+        .currencyId(currencyId)
+        .build();
+
+      user.getFavoriteCurrencies().add(favoriteCurrency);
+      userRepository.save(user);
+      CurrencyResponse favoriteCurrencyResponse = currencyFeignClientService.
+          getCurrencyById(String.valueOf(currencyId));
+      return favoriteCurrencyResponse;
     }
-
-    FavoriteCurrencies favoriteCurrency = FavoriteCurrencies.builder()
-      .user(user)
-      .currencyId(currencyId)
-      .build();
-
-    user.getFavoriteCurrencies().add(favoriteCurrency);
-    userRepository.save(user);
-    return favoriteCurrency;
-  }
 
   @Transactional
   public void removeFavoriteCurrency(Long userId, Long currencyId) {

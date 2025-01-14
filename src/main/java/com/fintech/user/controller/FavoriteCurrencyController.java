@@ -1,5 +1,7 @@
 package com.fintech.user.controller;
 
+import com.fintech.user.dto.responses.CurrencyResponse;
+import com.fintech.user.dto.responses.MessageResponse;
 import com.fintech.user.entity.FavoriteCurrencies;
 import com.fintech.user.service.FavoriteCurrencyService;
 import org.springframework.http.ResponseEntity;
@@ -7,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v1/users/{userId}/favorite-currencies")
+@RequestMapping("/api/users/{userId}/favorite-currencies")
 public class FavoriteCurrencyController {
   private final FavoriteCurrencyService favoriteCurrencyService;
 
@@ -16,19 +18,20 @@ public class FavoriteCurrencyController {
   }
 
   @PostMapping("/{currencyId}")
-  public ResponseEntity<FavoriteCurrencies> addFavoriteCurrency(
+  public ResponseEntity<CurrencyResponse> addFavoriteCurrency(
     @PathVariable Long userId,
     @PathVariable Long currencyId) {
-    FavoriteCurrencies favoriteCurrency = favoriteCurrencyService.addFavoriteCurrency(userId, currencyId);
+    CurrencyResponse favoriteCurrency = favoriteCurrencyService.addFavoriteCurrency(userId, currencyId);
     return ResponseEntity.ok(favoriteCurrency);
   }
 
   @DeleteMapping("/{currencyId}")
-  public ResponseEntity<Void> removeFavoriteCurrency(
+  public ResponseEntity<MessageResponse> removeFavoriteCurrency(
     @PathVariable Long userId,
     @PathVariable Long currencyId) {
     favoriteCurrencyService.removeFavoriteCurrency(userId, currencyId);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(
+      MessageResponse.builder().message("Currency removed successfully from user").build());
   }
 
   @GetMapping

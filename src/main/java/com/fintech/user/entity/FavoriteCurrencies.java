@@ -1,10 +1,8 @@
 package com.fintech.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -23,7 +21,10 @@ public class FavoriteCurrencies implements Serializable {
   @Column(nullable = false)
   private Long currencyId; // References the ID in the wallet service
 
+  @JsonIgnore
   @ManyToOne
   @JoinColumn(name = "user_id", nullable = false)
+  @ToString.Exclude // Exclude from toString
+  @EqualsAndHashCode.Exclude // Exclude from hashCode and equals
   private User user;
 }

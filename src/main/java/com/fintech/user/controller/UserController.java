@@ -1,10 +1,9 @@
 package com.fintech.user.controller;
 
 import com.fintech.user.config.exception.UserAlreadyExist;
-import com.fintech.user.controller.dto.requests.UserRequest;
-import com.fintech.user.controller.dto.responses.MessageResponse;
-import com.fintech.user.controller.dto.responses.UserResponse;
-import com.fintech.user.entity.Image;
+import com.fintech.user.dto.requests.UserRequest;
+import com.fintech.user.dto.responses.MessageResponse;
+import com.fintech.user.dto.responses.UserResponse;
 import com.fintech.user.entity.User;
 import com.fintech.user.service.ImageService;
 import com.fintech.user.service.UserService;
@@ -58,8 +57,8 @@ public class UserController {
   // Get user by ID
   @GetMapping("/{id}")
   public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-    User user = userService.getUserById(id);
-    return ResponseEntity.ok(userMapper.userToResponse(user));
+
+    return ResponseEntity.ok(userService.getUserById(id));
   }
   // Update user
   @PutMapping("/{id}")

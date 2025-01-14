@@ -1,8 +1,7 @@
 package com.fintech.user.service.mapper;
 
-import com.fintech.user.controller.dto.requests.UserRequest;
-import com.fintech.user.controller.dto.responses.UserResponse;
-import com.fintech.user.entity.Image;
+import com.fintech.user.dto.requests.UserRequest;
+import com.fintech.user.dto.responses.UserResponse;
 import com.fintech.user.entity.OwnerShip;
 import com.fintech.user.entity.User;
 import org.springframework.stereotype.Service;

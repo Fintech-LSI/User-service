@@ -1,4 +1,4 @@
-package com.fintech.user.controller.dto.responses;
+package com.fintech.user.dto.responses;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class MessageResponse {
-  private String message;
+public class CurrencyResponse {
+  private Long id;
+  private String name;
+  private String code;
+  private Double exchangeRate;
 }
