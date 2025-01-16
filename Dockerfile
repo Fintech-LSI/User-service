@@ -12,13 +12,16 @@ COPY public ./public
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM amazoncorretto:21-alpine
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
+# Install bash for debugging purposes
+RUN apt-get update && apt-get install -y bash
 
-# Copy the JAR file from the build stage
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
+
+ENV JAVA_TOOL_OPTIONS="-Xms256m -Xmx512m"
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
