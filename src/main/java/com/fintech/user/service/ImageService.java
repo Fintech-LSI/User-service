@@ -47,7 +47,7 @@ public class ImageService {
     return imageRepository.findByName("default").orElseGet(() -> {
       Image defaultImage = Image.builder()
         .name("default")
-        .url("/images/default_profile_picture.png")
+        .url("default_profile_picture.png")
         .build();
       return imageRepository.save(defaultImage);
     });

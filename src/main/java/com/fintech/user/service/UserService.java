@@ -1,21 +1,30 @@
 package com.fintech.user.service;
 
+import com.fintech.user.config.exception.EmailAlreadyExistsException;
 import com.fintech.user.config.exception.UserNotFoundException;
-import com.fintech.user.controller.dto.requests.UserRequest;
+import com.fintech.user.dto.requests.UserRequest;
+import com.fintech.user.dto.responses.CurrencyResponse;
+import com.fintech.user.dto.responses.UserResponse;
 import com.fintech.user.entity.Image;
+import com.fintech.user.entity.OwnerShip;
 import com.fintech.user.entity.User;
 import com.fintech.user.repository.UserRepository;
+import com.fintech.user.service.feign_clients.CurrencyFeignClientService;
 import com.fintech.user.service.mapper.UserMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class UserService {
   @Autowired
   private UserRepository userRepository;
@@ -25,6 +34,9 @@ public class UserService {
 
   @Autowired
   private ImageService imageService;
+
+  @Autowired
+  private CurrencyFeignClientService currencyFeignClientService;
 
   public User saveUser(UserRequest userRequest) throws IOException {
     User user = userMapper.requestToUser(userRequest);
@@ -50,24 +62,86 @@ public class UserService {
     return userRepository.findAll();
   }
 
-  public User getUserById(Long id) {
-    return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(String.valueOf(id)));
+  public UserResponse getUserById(Long id) {
+    // Fetch the user or throw an exception if not found
+    User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(String.valueOf(id)));
+
+    // Map user to UserResponse
+    UserResponse userResponse = userMapper.userToResponse(user);
+
+    // Fetch favorite currencies using Feign client
+    List<CurrencyResponse> favoriteCurrencies = user.getFavoriteCurrencies()
+      .stream()
+      .map(favoriteCurrency -> currencyFeignClientService.getCurrencyById(favoriteCurrency.getCurrencyId().toString()))
+      .collect(Collectors.toList());
+
+    // Set the favorite currencies in the response
+    userResponse.setFavoriteCurrencies(favoriteCurrencies);
+    return userResponse;
   }
 
-  public User updateUser(Long id, UserRequest userRequest) throws IOException {
-    User existingUser = getUserById(id);
-    existingUser.setFirstName(userRequest.firstName());
-    existingUser.setLastName(userRequest.lastName());
-    existingUser.setEmail(userRequest.email());
-    existingUser.setAge(userRequest.age());
 
-    if (userRequest.imageFile() != null && !userRequest.imageFile().isEmpty()) {
-      // Replace the old image with the new one
-      if (existingUser.getImage() != null) {
-        imageService.deleteImage(existingUser.getImage().getId());
+  public User updateUser(Long id, UserRequest userRequest) throws IOException {
+    User existingUser = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException(String.valueOf(id)));
+
+    // Only update the email if it has changed
+    if (userRequest.email() != null && !userRequest.email().equals(existingUser.getEmail())) {
+      if (userRepository.existsByEmailAndIdNot(userRequest.email(), id)) {
+        throw new EmailAlreadyExistsException("Email " + userRequest.email() + " is already in use");
       }
+      existingUser.setEmail(userRequest.email());
+    }
+
+    // Update fields only if they have changed
+    if (userRequest.firstName() != null && !userRequest.firstName().equals(existingUser.getFirstName())) {
+      existingUser.setFirstName(userRequest.firstName());
+    }
+
+    if (userRequest.lastName() != null && !userRequest.lastName().equals(existingUser.getLastName())) {
+      existingUser.setLastName(userRequest.lastName());
+    }
+
+    if (userRequest.age() != null && !userRequest.age().equals(existingUser.getAge())) {
+      existingUser.setAge(userRequest.age());
+    }
+
+    if (userRequest.salary() != null && !userRequest.salary().equals(existingUser.getSalary())) {
+      existingUser.setSalary(userRequest.salary());
+    }
+
+    if (userRequest.homeOwnership() != null && !userRequest.homeOwnership().equals(existingUser.getHomeOwnership())) {
+      existingUser.setHomeOwnership(OwnerShip.valueOf(userRequest.homeOwnership()));
+    }
+
+    if (userRequest.employmentMonth() != null && !userRequest.employmentMonth().equals(existingUser.getEmploymentMonth())) {
+      existingUser.setEmploymentMonth(userRequest.employmentMonth());
+    }
+
+    // Handle image replacement
+    if (userRequest.imageFile() != null && !userRequest.imageFile().isEmpty()) {
+      // Store the old image reference
+      Image oldImage = existingUser.getImage();
+
+      // First save the new image
       Image uploadedImage = imageService.saveImage(userRequest.imageFile());
+
+      // Update user's image reference
       existingUser.setImage(uploadedImage);
+
+      // Save the user with new image
+      User savedUser = userRepository.save(existingUser);
+
+      // Now it's safe to delete the old image
+      if (oldImage != null && !oldImage.getUrl().equals("default_profile_picture.png")) {
+        try {
+          imageService.deleteImage(oldImage.getId());
+        } catch (Exception e) {
+          // Log the error but don't fail the update
+          log.error("Failed to delete old image: " + e.getMessage());
+        }
+      }
+
+      return savedUser;
     }
 
     return userRepository.save(existingUser);
