@@ -17,18 +17,15 @@ spec:
         - name: user-service
           image: public.ecr.aws/z1z0w2y6/user-service:latest
           ports:
-            - containerPort: 8080
+            - containerPort: 8090
           envFrom:
             - configMapRef:
                 name: user-service-config
           env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "prod"
-            # MySQL Credentials
             - name: SPRING_DATASOURCE_PRIMARY_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-credentials
+                  name: postgres-credentials
                   key: username
             - name: SPRING_DATASOURCE_PRIMARY_PASSWORD
               valueFrom:
@@ -36,16 +33,12 @@ spec:
                   name: mysql-credentials
                   key: password
             # PostgreSQL Credentials
-            - name: SPRING_DATASOURCE_SECONDARY_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-credentials
-                  key: username
-            - name: SPRING_DATASOURCE_SECONDARY_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: postgres-credentials
-                  key: password
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:postgresql://postgres-instance.c122egeymo28.us-east-1.rds.amazonaws.com:5432/user_service_db"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "postgres"
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: "password"
           resources:
             requests:
               memory: "256Mi"
@@ -56,6 +49,6 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8090
             initialDelaySeconds: 30
             periodSeconds: 10
