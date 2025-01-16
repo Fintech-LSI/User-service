@@ -11,7 +11,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Runtime stage
-FROM amazoncorretto:21-alpine
+FROM eclipse-temurin:21-jre-jammy
 
 WORKDIR /app
 
@@ -19,5 +19,7 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 8080
+
+ENV JAVA_TOOL_OPTIONS="-Xms256m -Xmx512m"
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
