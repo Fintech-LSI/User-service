@@ -10,24 +10,10 @@ data:
         name: user-service
       
       datasource:
-        # Primary MySQL Database
-        primary:
-          url: jdbc:mysql://terraform-20250111154620029800000001.c122egeymo28.us-east-1.rds.amazonaws.com:3306/user_service_db
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          hikari:
-            maximum-pool-size: 10
-            minimum-idle: 5
-            pool-name: MySQLPool
-        
-        # Secondary PostgreSQL Database
-        secondary:
-          url: jdbc:postgresql://postgres-instance.c122egeymo28.us-east-1.rds.amazonaws.com:5432/user_service_db
-          driver-class-name: org.postgresql.Driver
-          hikari:
-            maximum-pool-size: 10
-            minimum-idle: 5
-            pool-name: PostgresPool
-      
+        url: ${SPRING_DATASOURCE_URL}
+        username: ${SPRING_DATASOURCE_USERNAME}
+        password: ${SPRING_DATASOURCE_PASSWORD}
+        driver-class-name: com.mysql.cj.jdbc.Driver
       jpa:
         properties:
           hibernate:
