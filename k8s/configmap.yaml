@@ -35,7 +35,7 @@ data:
               primary: org.hibernate.dialect.MySQLDialect
               secondary: org.hibernate.dialect.PostgreSQLDialect
         hibernate:
-          ddl-auto: validate
+          ddl-auto: update
       
       config:
         import: optional:configserver:http://config-server.fintech.svc.cluster.local:8889
