@@ -22,23 +22,21 @@ spec:
             - configMapRef:
                 name: user-service-config
           env:
-            - name: SPRING_DATASOURCE_PRIMARY_USERNAME
+            - name: SPRING_DATASOURCE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: url
+            - name: SPRING_DATASOURCE_USERNAME
               valueFrom:
                 secretKeyRef:
                   name: postgres-credentials
                   key: username
-            - name: SPRING_DATASOURCE_PRIMARY_PASSWORD
+            - name: SPRING_DATASOURCE_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mysql-credentials
+                  name: postgres-credentials
                   key: password
-            # PostgreSQL Credentials
-            - name: SPRING_DATASOURCE_URL
-              value: "jdbc:postgresql://postgres-instance.c122egeymo28.us-east-1.rds.amazonaws.com:5432/user_service_db"
-            - name: SPRING_DATASOURCE_USERNAME
-              value: "postgres"
-            - name: SPRING_DATASOURCE_PASSWORD
-              value: "password"
           resources:
             requests:
               memory: "256Mi"
