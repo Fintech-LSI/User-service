@@ -25,7 +25,7 @@ spec:
             - name: SPRING_DATASOURCE_PRIMARY_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: mysql-credentials
+                  name: postgres-credentials
                   key: username
             - name: SPRING_DATASOURCE_PRIMARY_PASSWORD
               valueFrom:
