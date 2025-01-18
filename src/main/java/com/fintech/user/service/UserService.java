@@ -17,9 +17,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Currency;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +39,9 @@ public class UserService {
 
   @Autowired
   private CurrencyFeignClientService currencyFeignClientService;
+
+  @Autowired
+  private EmailService emailService;
 
   public User saveUser(UserRequest userRequest) throws IOException {
     User user = userMapper.requestToUser(userRequest);
@@ -158,4 +163,46 @@ public class UserService {
     return Optional.ofNullable(userRepository.findByEmail(email));
   }
 
+
+  private String generateVerificationCode() {
+    return String.format("%06d", new Random().nextInt(999999));
+  }
+
+  public void sendVerificationCode(String email) {
+    User user = userRepository.findByEmail(email);
+    if (user == null) {
+      throw new UserNotFoundException("User not found with email: " + email);
+    }
+
+    String code = generateVerificationCode();
+    user.setVerificationCode(code);
+    user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(15));
+    userRepository.save(user);
+
+    emailService.sendVerificationEmail(email, code);
+  }
+
+  public boolean verifyEmail(String email, String code) {
+    User user = userRepository.findByEmail(email);
+    if (user == null) {
+      throw new UserNotFoundException("User not found with email: " + email);
+    }
+
+    if (user.getVerificationCode() == null ||
+      user.getVerificationCodeExpiry() == null ||
+      LocalDateTime.now().isAfter(user.getVerificationCodeExpiry())
+    ) {
+      return false;
+    }
+
+    if (user.getVerificationCode().equals(code)) {
+      user.setIsEmailVerified(true);
+      user.setVerificationCode(null);
+      user.setVerificationCodeExpiry(null);
+      userRepository.save(user);
+      return true;
+    }
+
+    return false;
+  }
 }

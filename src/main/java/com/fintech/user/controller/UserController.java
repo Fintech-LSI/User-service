@@ -5,6 +5,7 @@ import com.fintech.user.dto.requests.UserRequest;
 import com.fintech.user.dto.responses.MessageResponse;
 import com.fintech.user.dto.responses.UserResponse;
 import com.fintech.user.entity.User;
+import com.fintech.user.service.EmailService;
 import com.fintech.user.service.ImageService;
 import com.fintech.user.service.UserService;
 import com.fintech.user.service.mapper.UserMapper;
@@ -24,17 +25,43 @@ public class UserController {
   private UserService userService;
 
   @Autowired
-  private ImageService imageService;
+  private UserMapper userMapper;
 
   @Autowired
-  private UserMapper userMapper;
+  private EmailService emailService;
+
 
   // Test endpoint
   @GetMapping("/test")
   public String test() {
+    emailService.sendVerificationEmail("khalil.hessein@gmail.com","564GGKHALIL");
     return "User service is running! ";
   }
 
+  @PostMapping("/verify/send")
+  public ResponseEntity<MessageResponse> sendVerificationCode(@RequestParam String email) {
+    userService.sendVerificationCode(email);
+    return ResponseEntity.ok(MessageResponse.builder()
+      .message("Verification code sent successfully")
+      .build());
+  }
+
+  @PostMapping("/verify")
+  public ResponseEntity<MessageResponse> verifyEmail(
+    @RequestParam String email,
+    @RequestParam String code
+  ){
+    boolean verified = userService.verifyEmail(email, code);
+    if (verified) {
+      return ResponseEntity.ok(MessageResponse.builder()
+        .message("Email verified successfully")
+        .build());
+    } else {
+      return ResponseEntity.badRequest().body(MessageResponse.builder()
+        .message("Invalid or expired verification code")
+        .build());
+    }
+  }
 
 
 

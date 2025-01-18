@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -53,6 +54,19 @@ public class User implements Serializable {
   @JoinColumn(name = "image_id")
   private Image image;
 
+
+
+
+
+  @Column(nullable = false)
+  private Boolean isEmailVerified;
+
+  @Column(nullable = true)
+  private String verificationCode;
+
+  @Column(nullable = true)
+  private LocalDateTime verificationCodeExpiry;
+
   @PrePersist
   public void setDefaultImage() {
     if (this.image == null) {
@@ -60,6 +74,9 @@ public class User implements Serializable {
         .name("default")
         .url("default_profile_picture.png")
         .build();
+    }
+    if (isEmailVerified == null) {
+      isEmailVerified = false;
     }
   }
 

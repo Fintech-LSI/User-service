@@ -15,6 +15,17 @@ spring:
     hibernate:
       ddl-auto: update                             # Use 'update' for schema updates without dropping
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: spamfake2022@gmail.com     # Your Gmail address
+    password: hxnzkzgowyuswmcd    # Your Gmail app password (not your regular password)
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
 #eureka:
 #  client:
