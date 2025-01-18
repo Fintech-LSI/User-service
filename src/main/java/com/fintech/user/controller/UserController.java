@@ -67,6 +67,12 @@ public class UserController {
     return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
   }
 
+  @PatchMapping("/{id}")
+  public ResponseEntity<UserResponse> updateImage(@PathVariable Long id, @ModelAttribute UserRequest request) throws IOException {
+    User updatedUser = userService.updateUser(id, request);
+    return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
+  }
+
   // Delete user
   @DeleteMapping("/{id}")
   public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long id) {
