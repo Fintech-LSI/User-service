@@ -53,7 +53,7 @@ public class UserController {
 
   // Create a new user
   @PostMapping
-  public ResponseEntity<UserResponse> createUser(@ModelAttribute UserRequest request) throws IOException {
+  public ResponseEntity<UserResponse> createUser(@RequestBody UserRequest request) throws IOException {
     if (request.id() != null && userService.isUserExist(request.id())) {
       throw new UserAlreadyExist(String.valueOf(request.id()));
     }

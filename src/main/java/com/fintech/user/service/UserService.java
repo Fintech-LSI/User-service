@@ -59,6 +59,7 @@ public class UserService {
     existingUser.setFirstName(userRequest.firstName());
     existingUser.setLastName(userRequest.lastName());
     existingUser.setEmail(userRequest.email());
+    existingUser.setAge(userRequest.age());
 
     if (userRequest.imageFile() != null && !userRequest.imageFile().isEmpty()) {
       // Replace the old image with the new one

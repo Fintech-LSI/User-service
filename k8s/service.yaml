@@ -4,9 +4,9 @@ metadata:
   name: user-service
   namespace: fintech
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   ports:
-    - port: 80
-      targetPort: 8080
+    - port: 8090
+      targetPort: 8090
   selector:
     app: user-service
