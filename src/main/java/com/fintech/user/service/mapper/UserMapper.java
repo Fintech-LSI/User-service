@@ -18,6 +18,6 @@ public class UserMapper {
 
 
   public UserResponse userToResponse(User user) {
-    return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail() , user.getAge(),user.getImage().getUrl());
+    return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail() , user.getAge(),user.getSalary(),user.getHomeOwnership(),user.getEmploymentMonth(),user.getImage().getUrl());
   }
 }
