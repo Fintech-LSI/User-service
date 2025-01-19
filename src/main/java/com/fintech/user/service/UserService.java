@@ -175,34 +175,34 @@ public class UserService {
     }
 
     String code = generateVerificationCode();
-    user.setVerificationCode(code);
-    user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(15));
+//    user.setVerificationCode(code);
+//    user.setVerificationCodeExpiry(LocalDateTime.now().plusMinutes(15));
     userRepository.save(user);
 
     emailService.sendVerificationEmail(email, code);
   }
 
-  public boolean verifyEmail(String email, String code) {
-    User user = userRepository.findByEmail(email);
-    if (user == null) {
-      throw new UserNotFoundException("User not found with email: " + email);
-    }
-
-    if (user.getVerificationCode() == null ||
-      user.getVerificationCodeExpiry() == null ||
-      LocalDateTime.now().isAfter(user.getVerificationCodeExpiry())
-    ) {
-      return false;
-    }
-
-    if (user.getVerificationCode().equals(code)) {
-      user.setIsEmailVerified(true);
-      user.setVerificationCode(null);
-      user.setVerificationCodeExpiry(null);
-      userRepository.save(user);
-      return true;
-    }
-
-    return false;
-  }
+//  public boolean verifyEmail(String email, String code) {
+//    User user = userRepository.findByEmail(email);
+//    if (user == null) {
+//      throw new UserNotFoundException("User not found with email: " + email);
+//    }
+//
+//    if (user.getVerificationCode() == null ||
+//      user.getVerificationCodeExpiry() == null ||
+//      LocalDateTime.now().isAfter(user.getVerificationCodeExpiry())
+//    ) {
+//      return false;
+//    }
+//
+//    if (user.getVerificationCode().equals(code)) {
+//      user.setIsEmailVerified(true);
+//      user.setVerificationCode(null);
+//      user.setVerificationCodeExpiry(null);
+//      userRepository.save(user);
+//      return true;
+//    }
+//
+//    return false;
+//  }
 }

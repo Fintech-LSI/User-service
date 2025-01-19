@@ -38,30 +38,30 @@ public class UserController {
     return "User service is running! ";
   }
 
-  @PostMapping("/verify/send")
-  public ResponseEntity<MessageResponse> sendVerificationCode(@RequestParam String email) {
-    userService.sendVerificationCode(email);
-    return ResponseEntity.ok(MessageResponse.builder()
-      .message("Verification code sent successfully")
-      .build());
-  }
+//  @PostMapping("/verify/send")
+//  public ResponseEntity<MessageResponse> sendVerificationCode(@RequestParam String email) {
+//    userService.sendVerificationCode(email);
+//    return ResponseEntity.ok(MessageResponse.builder()
+//      .message("Verification code sent successfully")
+//      .build());
+//  }
 
-  @PostMapping("/verify")
-  public ResponseEntity<MessageResponse> verifyEmail(
-    @RequestParam String email,
-    @RequestParam String code
-  ){
-    boolean verified = userService.verifyEmail(email, code);
-    if (verified) {
-      return ResponseEntity.ok(MessageResponse.builder()
-        .message("Email verified successfully")
-        .build());
-    } else {
-      return ResponseEntity.badRequest().body(MessageResponse.builder()
-        .message("Invalid or expired verification code")
-        .build());
-    }
-  }
+//  @PostMapping("/verify")
+//  public ResponseEntity<MessageResponse> verifyEmail(
+//    @RequestParam String email,
+//    @RequestParam String code
+//  ){
+//    boolean verified = userService.verifyEmail(email, code);
+//    if (verified) {
+//      return ResponseEntity.ok(MessageResponse.builder()
+//        .message("Email verified successfully")
+//        .build());
+//    } else {
+//      return ResponseEntity.badRequest().body(MessageResponse.builder()
+//        .message("Invalid or expired verification code")
+//        .build());
+//    }
+//  }
 
 
 

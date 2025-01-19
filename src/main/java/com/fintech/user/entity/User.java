@@ -58,14 +58,14 @@ public class User implements Serializable {
 
 
 
-  @Column(nullable = false)
-  private Boolean isEmailVerified;
-
-  @Column(nullable = true)
-  private String verificationCode;
-
-  @Column(nullable = true)
-  private LocalDateTime verificationCodeExpiry;
+//  @Column(nullable = false)
+//  private Boolean isEmailVerified;
+//
+//  @Column(nullable = true)
+//  private String verificationCode;
+//
+//  @Column(nullable = true)
+//  private LocalDateTime verificationCodeExpiry;
 
   @PrePersist
   public void setDefaultImage() {
@@ -75,9 +75,9 @@ public class User implements Serializable {
         .url("default_profile_picture.png")
         .build();
     }
-    if (isEmailVerified == null) {
-      isEmailVerified = false;
-    }
+//    if (isEmailVerified == null) {
+    //  isEmailVerified = false;
+   // }
   }
 
 }
