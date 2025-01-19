@@ -34,6 +34,7 @@ public class UserMapper {
       .salary(user.getSalary() != null ? user.getSalary() : null)
       .employmentMonth(user.getEmploymentMonth() != null ? user.getEmploymentMonth() : null)
       .homeOwnership(user.getHomeOwnership() != null ? user.getHomeOwnership().toString() : null)
+      .isEmailVerified(user.getIsEmailVerified())
       .build();
   }
 

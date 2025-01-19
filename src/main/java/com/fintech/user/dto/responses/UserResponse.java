@@ -37,5 +37,6 @@ public class UserResponse {
   private String homeOwnership;
   private Integer employmentMonth;
 
+  private Boolean isEmailVerified;
   private List<CurrencyResponse> favoriteCurrencies;
 }
