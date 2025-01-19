@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email;
 import lombok.*;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -36,6 +37,7 @@ public class User implements Serializable {
   @Column(nullable = true)
   private Double salary;
 
+  @Enumerated(EnumType.ORDINAL)
   @Column(nullable = true)
   private OwnerShip homeOwnership;
 
@@ -43,6 +45,8 @@ public class User implements Serializable {
   private Integer employmentMonth;
 
   @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+  @ToString.Exclude // Exclude from toString
+  @EqualsAndHashCode.Exclude // Exclude from hashCode and equals
   private Set<FavoriteCurrencies> favoriteCurrencies = new HashSet<>();
 
 
@@ -50,13 +54,29 @@ public class User implements Serializable {
   @JoinColumn(name = "image_id")
   private Image image;
 
+
+
+
+
+  @Column(nullable = false)
+  private Boolean isEmailVerified;
+
+  @Column(nullable = true)
+  private String verificationCode;
+
+  @Column(nullable = true)
+  private LocalDateTime verificationCodeExpiry;
+
   @PrePersist
   public void setDefaultImage() {
     if (this.image == null) {
-      this.image = Image.builder()
+      this.image =  Image.builder()
         .name("default")
-        .url("https://upload.wikimedia.org/wikipedia/commons/a/a5/Default_Profile_Picture.png")
-        .build(); // Initialize with default image URL
+        .url("default_profile_picture.png")
+        .build();
+    }
+    if (isEmailVerified == null) {
+      isEmailVerified = false;
     }
   }
 

@@ -1,4 +1,4 @@
-package com.fintech.user.controller.dto.requests;
+package com.fintech.user.dto.requests;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;

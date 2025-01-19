@@ -1,10 +1,11 @@
 package com.fintech.user.controller;
 
 import com.fintech.user.config.exception.UserAlreadyExist;
-import com.fintech.user.controller.dto.requests.UserRequest;
-import com.fintech.user.controller.dto.responses.UserResponse;
-import com.fintech.user.entity.Image;
+import com.fintech.user.dto.requests.UserRequest;
+import com.fintech.user.dto.responses.MessageResponse;
+import com.fintech.user.dto.responses.UserResponse;
 import com.fintech.user.entity.User;
+import com.fintech.user.service.EmailService;
 import com.fintech.user.service.ImageService;
 import com.fintech.user.service.UserService;
 import com.fintech.user.service.mapper.UserMapper;
@@ -24,32 +25,46 @@ public class UserController {
   private UserService userService;
 
   @Autowired
-  private ImageService imageService;
+  private UserMapper userMapper;
 
   @Autowired
-  private UserMapper userMapper;
+  private EmailService emailService;
+
 
   // Test endpoint
   @GetMapping("/test")
   public String test() {
-    User user = new User();
-    user.setFirstName("test");
-    user.setLastName("test");
-    user.setEmail("test@test.com");
-    return "User service is running! "+user.getEmail()+" "+user.getFirstName()+" "+user.getLastName();
+    emailService.sendVerificationEmail("khalil.hessein@gmail.com","564GGKHALIL");
+    return "User service is running! ";
   }
-  // Test endpoint
-  @PostMapping("/image/test")
-  public String testimage(@RequestBody UserRequest ur)  {
-    Image i;
-    try{
-        i = imageService.saveImage(ur.imageFile());
-    } catch (IOException e) {
-      return e.getMessage();
-    }
 
-   return i.getUrl();
+  @PostMapping("/verify/send")
+  public ResponseEntity<MessageResponse> sendVerificationCode(@RequestParam String email) {
+    userService.sendVerificationCode(email);
+    return ResponseEntity.ok(MessageResponse.builder()
+      .message("Verification code sent successfully")
+      .build());
   }
+
+  @PostMapping("/verify")
+  public ResponseEntity<MessageResponse> verifyEmail(
+    @RequestParam String email,
+    @RequestParam String code
+  ){
+    boolean verified = userService.verifyEmail(email, code);
+    if (verified) {
+      return ResponseEntity.ok(MessageResponse.builder()
+        .message("Email verified successfully")
+        .build());
+    } else {
+      return ResponseEntity.badRequest().body(MessageResponse.builder()
+        .message("Invalid or expired verification code")
+        .build());
+    }
+  }
+
+
+
 
   // Create a new user
   @PostMapping
@@ -69,8 +84,8 @@ public class UserController {
   // Get user by ID
   @GetMapping("/{id}")
   public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-    User user = userService.getUserById(id);
-    return ResponseEntity.ok(userMapper.userToResponse(user));
+
+    return ResponseEntity.ok(userService.getUserById(id));
   }
   // Update user
   @PutMapping("/{id}")
@@ -79,11 +94,17 @@ public class UserController {
     return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
   }
 
+  @PatchMapping("/{id}")
+  public ResponseEntity<UserResponse> updateImage(@PathVariable Long id, @ModelAttribute UserRequest request) throws IOException {
+    User updatedUser = userService.updateUser(id, request);
+    return ResponseEntity.ok(userMapper.userToResponse(updatedUser));
+  }
+
   // Delete user
   @DeleteMapping("/{id}")
-  public ResponseEntity<String> deleteUser(@PathVariable Long id) {
+  public ResponseEntity<MessageResponse> deleteUser(@PathVariable Long id) {
     userService.deleteUser(id);
-    return ResponseEntity.ok("User deleted successfully");
+    return ResponseEntity.ok(MessageResponse.builder().message("User deleted successfully").build());
   }
 
 
@@ -92,7 +113,9 @@ public class UserController {
     try {
       // Validate input
       if (email == null || email.trim().isEmpty()) {
-        return ResponseEntity.badRequest().body("Email cannot be null or empty.");
+        return ResponseEntity.badRequest().body(
+          MessageResponse.builder().message("Email cannot be null or empty.").build()
+        );
       }
 
       // Find user by email
@@ -104,12 +127,12 @@ public class UserController {
         return ResponseEntity.ok(userResponse);
       } else {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-          .body("User with email " + email + " not found.");
+          .body(MessageResponse.builder().message("User with email " + email + " not found.").build());
       }
     } catch (Exception e) {
       // Handle unexpected errors
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-        .body("An error occurred while processing the request: " + e.getMessage());
+        .body(MessageResponse.builder().message("An error occurred while processing the request: " + e.getMessage()).build());
     }
   }
 

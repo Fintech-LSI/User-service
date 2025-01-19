@@ -1,4 +1,4 @@
-package com.fintech.user.controller.dto.requests;
+package com.fintech.user.dto.requests;
 
 import com.fintech.user.entity.OwnerShip;
 import jakarta.validation.constraints.Email;
@@ -31,8 +31,8 @@ public record UserRequest(
   // New fields for additional user information - all are optional
   Integer age,
   Double salary,
-  OwnerShip homeOwnership,
-  Integer employmentYears
+  String homeOwnership,
+  Integer employmentMonth
 
 
   ) {}
