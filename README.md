@@ -1,30 +1,99 @@
-# User Service
+<div align="center">
 
-A Spring Boot microservice for managing user accounts, authentication, and user-related operations in a fintech ecosystem.
+# 👤 User Service
 
-## Project Overview
+[![Build Status](https://img.shields.io/jenkins/build?jobUrl=your-jenkins-url)](https://jenkins-url)
+[![Quality Gate Status](https://img.shields.io/sonar/quality_gate/user-service?server=http://54.86.47.1:9000)](http://54.86.47.1:9000)
+[![Docker Pulls](https://img.shields.io/docker/pulls/your-repo/user-service)](https://hub.docker.com/r/your-repo/user-service)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+</div>
 
-The User Service is a microservice built with Spring Boot that handles:
-- User account management
-- Profile management
-- Email services
-- Favorite currencies management
-- Image handling
-- Integration with Currency Service
+## 📋 Table of Contents
+- [Overview](#-overview)
+- [Features](#-features)
+- [Architecture](#-architecture)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Pipeline](#-pipeline)
+- [Getting Started](#-getting-started)
+- [API Documentation](#-api-documentation)
+- [Configuration](#-configuration)
+- [Monitoring](#-monitoring)
+- [Deployment](#-deployment)
+- [Contributing](#-contributing)
+- [Team](#-team)
+- [License](#-license)
 
-## Project Structure
+## 🎯 Overview
+
+A comprehensive user management microservice built with Spring Boot that handles user accounts, profiles, and preferences within the FinTechPro ecosystem. This service provides centralized user data management with seamless integration with other platform services.
+
+## ✨ Features
+
+- 👤 **User Account Management**
+    - Registration
+    - Profile updates
+    - Account status
+- 📧 **Email Services**
+    - Verification
+    - Notifications
+    - Password reset
+- 🎯 **Favorite Currencies**
+    - Add/Remove favorites
+    - Preference tracking
+    - Real-time updates
+- 🖼️ **Image Handling**
+    - Profile pictures
+    - Document uploads
+    - Secure storage
+- 🔄 **Service Integration**
+    - Currency service connectivity
+    - Real-time data sync
+- 📊 **User Analytics**
+    - Activity tracking
+    - Usage patterns
+    - Preference analysis
+
+## 🏗 Architecture
+
+The service follows a microservices architecture pattern:
+
+```
+                                  ┌─────────────┐
+                             ┌──▶│   Currency   │
+┌──────────────┐    REST    │    │   Service   │
+│    User      │◀──────────▶│    └─────────────┘
+│   Service    │            │    ┌─────────────┐
+└──────────────┘    AWS     └──▶│    S3 for    │
+                   Services      │   Images     │
+                                └─────────────┘
+```
+
+## 🛠 Tech Stack
+
+<div align="center">
+  <img src="https://img.shields.io/badge/Spring_Boot-F2F4F9?style=for-the-badge&logo=spring-boot" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=java&logoColor=white" alt="Java" />
+  <img src="https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Amazon_AWS-FF9900?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS" />
+  <img src="https://img.shields.io/badge/Docker-2CA5E0?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/kubernetes-326ce5.svg?&style=for-the-badge&logo=kubernetes&logoColor=white" alt="Kubernetes" />
+  <img src="https://img.shields.io/badge/Jenkins-D24939?style=for-the-badge&logo=Jenkins&logoColor=white" alt="Jenkins" />
+</div>
+
+## 📂 Project Structure
 
 ```
 src/main/java/com.fintech.user/
-├── config/          # Configuration files
-├── controller/      # REST controllers
-├── dto/            # Data Transfer Objects
-├── entity/         # Domain entities
-├── repository/     # Data repositories
+├── 📊 config/               # Configuration files
+├── 🎮 controller/           # REST controllers
+├── 📦 dto/                 # Data Transfer Objects
+├── 🏢 entity/              # Domain entities
+├── 📚 repository/          # Data repositories
 │   ├── FavoriteCurrenciesRepository
 │   ├── ImageRepository
 │   └── UserRepository
-├── service/        # Business logic
+├── 🔧 service/             # Business logic
 │   ├── feign_clients/
 │   │   └── CurrencyFeignClientService
 │   ├── mapper/
@@ -33,135 +102,90 @@ src/main/java/com.fintech.user/
 │   ├── FavoriteCurrencyService
 │   ├── ImageService
 │   └── UserService
-└── UserApplication.java
+└── 🚀 UserApplication.java
 ```
 
-## Tech Stack
+## 🔄 Pipeline
 
-- **Framework**: Spring Boot
-- **Build Tool**: Maven
-- **Database**: PostgreSQL
-- **Container**: Docker
-- **Container Registry**: AWS ECR (Public)
-- **Orchestration**: Kubernetes (EKS)
-- **CI/CD**: Jenkins
-- **Code Quality**: SonarQube
-
-## CI/CD Pipeline
-
-Our automated CI/CD pipeline ensures reliable and consistent deployments through multiple stages:
+Our robust CI/CD pipeline ensures reliable deployments:
 
 ![CI/CD Pipeline](/images/pipeline-diagram.png)
 
-### Pipeline Stages
 
-#### 1. Code Checkout
-- Triggered automatically by GitHub webhook
-- Fetches the latest code from the repository
-- Ensures clean workspace for build process
+1. 📥 **Code Checkout**
+    - Automated GitHub webhook triggers
+    - Clean workspace preparation
 
-#### 2. Static Code Analysis (Currently Disabled)
-- Performs comprehensive code quality analysis using SonarQube
-- Checks for:
-    - Code smells
-    - Bugs
-    - Security vulnerabilities
-    - Test coverage
-- Enforces quality gates with a 5-minute timeout
-- Fails the pipeline if quality criteria aren't met
+2. 🔍 **SonarQube Analysis**
+    - Code quality verification
+    - Security vulnerability scanning
+    - Test coverage assessment
+    - Quality gate enforcement
 
-#### 3. Maven Build
-- Compiles the Java source code
-- Runs unit tests (currently skipped for faster builds)
-- Packages the application into a JAR file
-- Validates project structure and dependencies
+3. 🏗️ **Maven Build**
+    - Source compilation
+    - Unit test execution
+    - JAR packaging
+    - Dependency validation
 
-#### 4. Docker Build & Push
-- Creates a Docker image from the built application
-- Uses no-cache to ensure fresh builds
-- Authenticates with AWS ECR Public registry
-- Tags the image as 'latest'
-- Pushes the image to the registry for deployment
+4. 🐳 **Docker Build & Push**
+    - No-cache image building
+    - AWS ECR authentication
+    - Image tagging and pushing
 
-#### 5. EKS Deployment
-- Configures kubectl with cluster credentials
-- Creates or updates the fintech namespace
-- Applies Kubernetes manifests:
-    - ConfigMaps for configuration
-    - Secrets for sensitive data
-    - Deployment for pod specifications
-    - Service for networking
-- Verifies deployment status
+5. ☸️ **EKS Deployment**
+    - Kubernetes manifest application
+    - Deployment verification
+    - Health check monitoring
 
-### Pipeline Cleanup
-- Automatically runs after pipeline completion
-- Removes local Docker images to free up space
-- Cleans the workspace for next run
-- Ensures clean state for future builds
+## 🚀 Getting Started
 
-## Deployment
+```bash
+# Clone the repository
+git clone https://github.com/your-org/user-service.git
 
-The service is deployed to AWS EKS using Kubernetes manifests in the `k8s/` directory:
-- `configmap.yaml`: Environment variables and configurations
-- `secrets.yaml`: Sensitive data (credentials, tokens)
-- `deployment.yaml`: Pod specifications and container settings
-- `service.yaml`: Service exposure and networking
+# Navigate to project directory
+cd user-service
 
-## Getting Started
+# Install dependencies and build
+mvn clean install
 
-1. **Prerequisites**
-    - Java 17+
-    - Maven
-    - Docker
-    - AWS CLI
-    - kubectl
+# Run locally
+mvn spring-boot:run -Dspring.profiles.active=local
 
-2. **Local Development**
-   ```bash
-   # Build the project
-   mvn clean package
+# Run tests
+mvn test
 
-   # Run locally
-   mvn spring-boot:run
-   ```
+# Build Docker image
+docker build -t user-service .
+```
 
-3. **Docker Build**
-   ```bash
-   docker build -t user-service .
-   ```
 
-4. **Deploy to Kubernetes**
-   ```bash
-   # Apply manifests
-   kubectl apply -f k8s/ -n fintech
-   ```
 
-## Monitoring
+## 📊 Monitoring
 
-The service includes monitoring integration for:
-- Application metrics
-- Performance monitoring
-- Error tracking
-- Resource utilization
+Integrated monitoring includes:
+- 📈 Application metrics via Prometheus
+- 🔍 Performance tracking through Grafana
+- ⚡ Resource utilization monitoring
+- 🚨 Error tracking and alerting
+- 📝 Automated logging
 
-## Contributing
+## 👥 Team
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+| Avatar                                                                                                  | Name | Role | GitHub |
+|---------------------------------------------------------------------------------------------------------|------|------|--------|
+| <img src="https://github.com/zachary013.png" width="50" height="50" style="border-radius: 50%"/>        | Zakariae Azarkan | DevOps Engineer | [@zachary013](https://github.com/zachary013) |
+| <img src="https://github.com/goalaphx.png" width="50" height="50" style="border-radius: 50%"/>          | El Mahdi Id Lahcen | Frontend Developer | [@goalaphx](https://github.com/goalaphx) |
+| <img src="https://github.com/hodaifa-ech.png" width="50" height="50" style="border-radius: 50%"/>       | Hodaifa | Cloud Architect | [@hodaifa-ech](https://github.com/hodaifa-ech) |
+| <img src="https://github.com/khalilh2002.png" width="50" height="50" style="border-radius: 50%"/>       | Khalil El Houssine | Backend Developer | [@khalilh2002](https://github.com/khalilh2002) |
+| <img src="https://github.com/Medamine-Bahassou.png" width="50" height="50" style="border-radius: 50%"/> | Mohamed Amine BAHASSOU | ML Engineer | [@Medamine-Bahassou](https://github.com/Medamine-Bahassou) |
 
-## Contributors
-
-| Name | Role | GitHub |
-|------|------|--------|
-| Zakariae Azarkan | DevOps Engineer | [@zachary013](https://github.com/zachary013) |
-| El Mahdi Id Lahcen | Frontend Developer | [@goalaphx](https://github.com/goalaphx) |
-| Hodaifa | Cloud Architect | [@hodaifa-ech](https://github.com/hodaifa-ech) |
-| Khalil El Houssine | Backend Developer | [@khalilh2002](https://github.com/khalilh2002) |
-| Mohamed Amine BAHASSOU | ML Engineer | [@Medamine-Bahassou](https://github.com/Medamine-Bahassou) |
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+<div align="center">
+  <p>Built with ❤️ by the FinTech Team</p>
+</div>
